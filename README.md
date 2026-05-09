@@ -40,7 +40,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Unbalanced set of
 
 ### Screenshots
 
-The screenshots in the folder [screenshots](screenshots) show the successful execution of the program with different inputs.
+The [screenshot.png](screenshot.png) file shows the successful execution of the program with different inputs.
 
 ### Contributors
 

@@ -75,12 +75,10 @@ class Calculator {
             // If token is a number
             if (token.matches("\\d+")) {
                 s.push((byte) Integer.parseInt(token));
-            }
-            else if (token.equals("^")) {
+            } else if (token.equals("^")) {
                 byte val = s.pop();
                 s.push((byte) (-val));
-            }
-            else if (isOperator(token.charAt(0))) {
+            } else if (isOperator(token.charAt(0))) {
                 byte d1 = s.pop(); // Left operand
                 byte d2 = s.pop(); // Right operand
                 int result = 0;
@@ -100,7 +98,8 @@ class Calculator {
                         checkOverflow(result);
                         break;
                     case '/':
-                        if (d2 == 0) throw new ArithmeticException("Division by zero");
+                        if (d2 == 0)
+                            throw new ArithmeticException("Division by zero");
                         // Round up remainder
                         result = (int) Math.ceil((double) d1 / d2);
                         break;
@@ -124,26 +123,32 @@ class Calculator {
         scanner.close();
 
         try {
-        Stack<String> tokens = tokenize(expression);
-        // Infix to Prefix conversion logic
-        Collections.reverse(tokens);
-        Stack<String> swapped = new Stack<String>();
-        for (String c : tokens) {
-            if (c.equals("("))  swapped.push(")");
-            else if (c.equals(")")) swapped.push("(");
-            else    swapped.push(c);
-        }
+            Stack<String> tokens = tokenize(expression);
+            // Infix to Prefix conversion logic
+            Collections.reverse(tokens);
+            Stack<String> swapped = new Stack<String>();
+            for (String c : tokens) {
+                if (c.equals("("))
+                    swapped.push(")");
+                else if (c.equals(")"))
+                    swapped.push("(");
+                else
+                    swapped.push(c);
+            }
             Stack<String> postfix = new Stack<String>();
             Stack<String> operators = new Stack<String>();
             for (String c : swapped) {
-                if (c.matches("\\d+") || c.equals("^")) postfix.push(c);
-                else if (c.equals("(")) operators.push(c);
+                if (c.matches("\\d+") || c.equals("^"))
+                    postfix.push(c);
+                else if (c.equals("("))
+                    operators.push(c);
                 else if (c.equals(")")) {
-                    while (!operators.isEmpty() && !operators.peek().equals("("))   postfix.push(operators.pop());
-                    if (operators.isEmpty()) throw new IllegalArgumentException("Unbalanced set of parenthesis");
+                    while (!operators.isEmpty() && !operators.peek().equals("("))
+                        postfix.push(operators.pop());
+                    if (operators.isEmpty())
+                        throw new IllegalArgumentException("Unbalanced set of parenthesis");
                     operators.pop();
-                }
-                else {
+                } else {
                     while (!operators.isEmpty() && getPrecedence(operators.peek()) > getPrecedence(c)) {
                         postfix.push(operators.pop());
                     }
@@ -151,7 +156,8 @@ class Calculator {
                 }
             }
             while (!operators.isEmpty()) {
-                if (operators.peek().equals("(")) throw new IllegalArgumentException("Unbalanced set of parenthesis");
+                if (operators.peek().equals("("))
+                    throw new IllegalArgumentException("Unbalanced set of parenthesis");
                 postfix.push(operators.pop());
             }
 
@@ -161,7 +167,8 @@ class Calculator {
 
             // Output Prefix
             System.out.print("Prefix: ");
-            for (String s : prefix) System.out.print(s + " ");
+            for (String s : prefix)
+                System.out.print(s + " ");
             System.out.println();
 
             // Output Result
