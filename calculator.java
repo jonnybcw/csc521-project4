@@ -81,28 +81,28 @@ class Calculator {
                 s.push((byte) (-val));
             }
             else if (isOperator(token.charAt(0))) {
-                byte d1 = s.pop(); // Right operand
-                byte d2 = s.pop(); // Left operand
+                byte d1 = s.pop(); // Left operand
+                byte d2 = s.pop(); // Right operand
                 int result = 0;
                 char op = token.charAt(0);
 
                 switch (op) {
                     case '+':
-                        result = d2 + d1;
+                        result = d1 + d2;
                         checkOverflow(result);
                         break;
                     case '-':
-                        result = d2 - d1;
+                        result = d1 - d2;
                         checkOverflow(result);
                         break;
                     case '*':
-                        result = d2 * d1;
+                        result = d1 * d2;
                         checkOverflow(result);
                         break;
                     case '/':
                         if (d1 == 0) throw new ArithmeticException("Division by zero");
-                        // Round up remainder as required
-                        result = (int) Math.ceil((double) d2 / d1);
+                        // Round up remainder
+                        result = (int) Math.ceil((double) d1 / d2);
                         break;
                 }
                 s.push((byte) result);
