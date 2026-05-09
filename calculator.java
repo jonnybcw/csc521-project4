@@ -68,24 +68,21 @@ class Calculator {
     public static byte evaluatePrefix(Stack<String> prefix) {
         Stack<Byte> s = new Stack<>();
 
-        // Scan the prefix expression from right to left 
+        // Scan the prefix expression from right to left
         for (int i = prefix.size() - 1; i >= 0; i--) {
             String token = prefix.get(i);
 
             // If token is a number
             if (token.matches("\\d+")) {
                 s.push((byte) Integer.parseInt(token));
-            } 
-            // If token is a unary minus (negative number) 
+            }
             else if (token.equals("^")) {
-                // The next operand to the right is the one to negate 
                 byte val = s.pop();
                 s.push((byte) (-val));
             }
-            // If token is an operator
             else if (isOperator(token.charAt(0))) {
-                byte d1 = s.pop(); // Right operand 
-                byte d2 = s.pop(); // Left operand 
+                byte d1 = s.pop(); // Right operand
+                byte d2 = s.pop(); // Left operand
                 int result = 0;
                 char op = token.charAt(0);
 
@@ -99,7 +96,6 @@ class Calculator {
                         checkOverflow(result);
                         break;
                     case '*':
-                        // Simple magnitude method for 8-bit
                         result = d2 * d1;
                         checkOverflow(result);
                         break;
@@ -109,7 +105,7 @@ class Calculator {
                         result = (int) Math.ceil((double) d2 / d1);
                         break;
                 }
-                s.push((byte) result); // Push value back to stack
+                s.push((byte) result);
             }
         }
         return s.pop(); // Final value
