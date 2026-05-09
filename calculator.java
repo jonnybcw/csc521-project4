@@ -100,7 +100,7 @@ class Calculator {
                         checkOverflow(result);
                         break;
                     case '/':
-                        if (d1 == 0) throw new ArithmeticException("Division by zero");
+                        if (d2 == 0) throw new ArithmeticException("Division by zero");
                         // Round up remainder
                         result = (int) Math.ceil((double) d1 / d2);
                         break;
