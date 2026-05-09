@@ -40,20 +40,17 @@ class Calculator {
             // Digits
             if (Character.isDigit(c)) {
                 String digits = "";
-                char nextChar = c;
-                while (Character.isDigit(nextChar)) {
-                    digits += nextChar;
-                    nextChar = index != expression.length() - 1 ? expression.charAt(index + 1) : '\0';
-                    if (Character.isDigit(nextChar)) {
-                        index++;
-                    }
+                while (index < expression.length() && Character.isDigit(expression.charAt(index))) {
+                    digits += expression.charAt(index);
+                    index++;
                 }
+                index--; // Adjust for outer loop increment
                 prevToken = digits;
                 tokens.push(digits);
             } else if (isOperator(c) || c == '(' || c == ')') {
-                // Maps minus to ^ operator
+                // Maps unary minus to ^ symbol
                 if (c == '-' && (prevToken.isEmpty() || prevToken.equals("("))) {
-                    prevToken = String.valueOf(c);
+                    prevToken = "^";
                     tokens.push("^");
                 } else {
                     prevToken = String.valueOf(c);
@@ -67,77 +64,112 @@ class Calculator {
         return tokens;
     }
 
+    // Stack evaluation of prefix expression
+    public static byte evaluatePrefix(Stack<String> prefix) {
+        Stack<Byte> s = new Stack<>();
+
+        // Scan the prefix expression from right to left
+        for (int i = prefix.size() - 1; i >= 0; i--) {
+            String token = prefix.get(i);
+
+            // If token is a number
+            if (token.matches("\\d+")) {
+                s.push((byte) Integer.parseInt(token));
+            }
+            else if (token.equals("^")) {
+                byte val = s.pop();
+                s.push((byte) (-val));
+            }
+            else if (isOperator(token.charAt(0))) {
+                byte d1 = s.pop(); // Left operand
+                byte d2 = s.pop(); // Right operand
+                int result = 0;
+                char op = token.charAt(0);
+
+                switch (op) {
+                    case '+':
+                        result = d1 + d2;
+                        checkOverflow(result);
+                        break;
+                    case '-':
+                        result = d1 - d2;
+                        checkOverflow(result);
+                        break;
+                    case '*':
+                        result = d1 * d2;
+                        checkOverflow(result);
+                        break;
+                    case '/':
+                        if (d2 == 0) throw new ArithmeticException("Division by zero");
+                        // Round up remainder
+                        result = (int) Math.ceil((double) d1 / d2);
+                        break;
+                }
+                s.push((byte) result);
+            }
+        }
+        return s.pop(); // Final value
+    }
+
+    private static void checkOverflow(int result) {
+        if (result < -128 || result > 127) {
+            System.out.println("overflow occurs!");
+        }
+    }
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter the arithmetic expression in infix notation: ");
+        System.out.print("Enter the arithmetic expression in infix notation: ");
         String expression = scanner.nextLine();
         scanner.close();
 
+        try {
         Stack<String> tokens = tokenize(expression);
-        System.out.println("Tokens extracted: " + tokens);
-
-        // Reverse tokens and swap parentheses
+        // Infix to Prefix conversion logic
         Collections.reverse(tokens);
         Stack<String> swapped = new Stack<String>();
         for (String c : tokens) {
-            if (c.equals("(")) {
-                swapped.push(")");
-            } else if (c.equals(")")) {
-                swapped.push("(");
-            } else {
-                swapped.push(c);
-            }
+            if (c.equals("("))  swapped.push(")");
+            else if (c.equals(")")) swapped.push("(");
+            else    swapped.push(c);
         }
-
-        System.out.println("Swapped: " + swapped);
-
-        // Convert to postfix notation
-        Stack<String> postfix = new Stack<String>();
-        Stack<String> operators = new Stack<String>();
-        for (String c : swapped) {
-            // Digits
-            if (c.matches("\\d+")) {
-                postfix.push(c);
-            } else if (c.equals("(")) {
-                operators.push(c);
-            } else if (c.equals(")")) {
-                String op = "";
-                while (!op.equals("(")) {
-                    if (operators.isEmpty()) {
-                        throw new IllegalArgumentException("Unbalanced set of parenthesis");
-                    }
-                    op = operators.pop();
-                    if (!op.equals("(")) {
-                        postfix.push(op);
-                    }
+            Stack<String> postfix = new Stack<String>();
+            Stack<String> operators = new Stack<String>();
+            for (String c : swapped) {
+                if (c.matches("\\d+") || c.equals("^")) postfix.push(c);
+                else if (c.equals("(")) operators.push(c);
+                else if (c.equals(")")) {
+                    while (!operators.isEmpty() && !operators.peek().equals("("))   postfix.push(operators.pop());
+                    if (operators.isEmpty()) throw new IllegalArgumentException("Unbalanced set of parenthesis");
+                    operators.pop();
                 }
-            } else {
-                // Handle precedence of operators
-                while (getPrecedence(operators.isEmpty() ? "" : operators.peek()) > getPrecedence(c)) {
-                    postfix.push(operators.pop());
+                else {
+                    while (!operators.isEmpty() && getPrecedence(operators.peek()) > getPrecedence(c)) {
+                        postfix.push(operators.pop());
+                    }
+                    operators.push(c);
                 }
-                operators.push(c);
             }
-        }
-
-        // Handle remaining operators
-        while (!operators.isEmpty()) {
-            if (operators.peek().equals("(") || operators.peek().equals(")")) {
-                throw new IllegalArgumentException("Unbalanced set of parenthesis");
+            while (!operators.isEmpty()) {
+                if (operators.peek().equals("(")) throw new IllegalArgumentException("Unbalanced set of parenthesis");
+                postfix.push(operators.pop());
             }
-            postfix.push(operators.pop());
-        }
 
-        // Convert postfix to prefix
-        Stack<String> prefix = new Stack<>();
-        prefix.addAll(postfix);
-        Collections.reverse(prefix);
+            Stack<String> prefix = new Stack<>();
+            prefix.addAll(postfix);
+            Collections.reverse(prefix);
 
-        // Print prefix
-        String output = "Prefix: ";
-        for (String c : prefix) {
-            output += c + " ";
+            // Output Prefix
+            System.out.print("Prefix: ");
+            for (String s : prefix) System.out.print(s + " ");
+            System.out.println();
+
+            // Output Result
+            byte finalResult = evaluatePrefix(prefix);
+            System.out.println("Value: " + finalResult);
+
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
         }
-        System.out.println(output);
     }
 }
